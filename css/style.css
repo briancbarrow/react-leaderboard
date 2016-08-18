@@ -1,0 +1,26 @@
+body {
+  background-color: #ffa;
+}
+
+#leaderboard {
+  background: #2ff;
+  text-align: center;
+}
+
+.avatar {
+  height: 50px;
+  width: 85px;
+  margin: 0px;
+}
+.avatar img {
+  height: 100%;
+  width: 100%;
+}
+
+.info {
+  margin: 5% 0 5% 0;
+}
+
+.header {
+  margin: 5% 0 1% 0;
+}

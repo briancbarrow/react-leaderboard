@@ -1,0 +1,200 @@
+//Component to create leaderboard Headder
+var App = React.createClass({
+  
+  getInitialState: function() {
+    return{
+          campers: [],
+          list: "recent",
+          isLoading: true
+      } 
+    },
+  
+  getCampers: function (list) {
+    axios.get("https://fcctop100.herokuapp.com/api/fccusers/top/" + list)
+    .then(function (players) {
+      //console.log(players.data)
+                    var i = 1;
+                    players.data.map(function(user) {
+                      user.rank = i;
+                      i++;
+                    });
+                    this.setState({
+                      campers: players.data,
+                      list: list,
+                      isLoading: false
+                    })
+                    console.log(this.state)
+                  }.bind(this))
+},
+  
+  handleRecentClick: function() {
+    this.setState({
+      isLoading: true
+    })
+    this.getCampers("recent")
+    },  
+  
+  handleAllTimeClick: function() {
+    this.setState({
+      isLoading: true
+    })
+    this.getCampers("alltime")
+},
+
+  componentDidMount: function() {
+    console.log(this.state)
+    return (this.getCampers(this.state.list)            
+    )
+  },
+  
+  render: function() {
+    //console.log(this.state)
+    if(this.state.isLoading) {
+      return (
+        <div>
+        <Nav />
+        <Loading />
+      </div>
+      )
+    }
+    return (
+      <div>
+        <Nav />
+        <LeaderBoard campers={this.state.campers} list={this.state.list} recentClick={this.handleRecentClick} allTimeClick={this.handleAllTimeClick} />
+      </div>
+      )
+  }
+});
+
+var Nav = function() {
+    return <nav className="navbar navbar-default"><a href="#" className='navbar-brand'>FreeCodeCamp</a></nav>
+  };
+
+var caretThirty = "";
+var caretAll = "";
+
+///Not sure why I couldn't pass this into componentWillMount
+
+var RecentColumn = function(props) {
+    return(
+      <div onClick={props.onRecentClick} className="header col-xs-3">Points Last 30 Days {caretThirty}</div>
+    )
+  };
+
+var AllTimeColumn = function(props) {
+    return(
+      <div onClick={props.onAllTimeClick} className="header col-xs-3 text-center">All Time Points {caretAll}</div>
+    )
+};
+
+var LeaderBoard = React.createClass({
+ 
+  render: function () {
+    var campers = this.props.campers.map(function(camper){
+      return (
+        <Camper camper={camper} />
+      )
+    })
+    console.log("LeaderBoardComp", this.props)
+    if(this.props.list === "recent"){
+      caretThirty = <i className="fa fa-caret-down" aria-hidden="true"></i>;
+      caretAll = "";
+    } else {
+      caretThirty = "";
+      caretAll = <i className="fa fa-caret-down" aria-hidden="true"></i>;
+    }
+    return (
+      <div className="container">
+        <h2 className="col-sm-12">LeaderBoard</h2>
+        <div className="row">
+          <div className="header col-xs-1">#</div>
+          <div className="header col-xs-5">Camper Name</div>
+          <RecentColumn onRecentClick={this.props.recentClick} />
+          <AllTimeColumn onAllTimeClick={this.props.allTimeClick} />
+        </div>
+        <ul className="list-group">
+          {campers}
+        </ul>
+      </div>
+    )
+}
+});
+
+
+
+var Camper = function(props){
+    return (
+      <li className="camper list-group-item">
+        <div className="row">
+          <div className="header col-xs-1">{props.camper.rank}</div>
+          <div className="header col-xs-5"><div className="col-xs-6 avatar"><img src={props.camper.img} className="img-rounded img-responsive"/></div><div className="info col-xs-6">{props.camper.username}</div></div>
+          <div className="header col-xs-3">{props.camper.recent}</div>
+          <div className="header col-xs-3">{props.camper.alltime}</div>
+        </div>
+      </li>
+    )
+  }
+
+var styles = {
+  container: {
+    position: 'fixed',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    fontSize: '55px'
+  },
+  content: {
+    textAlign: 'center',
+    position: 'absolute',
+    width: '100%',
+    marginTop: '100px',
+  }
+}
+
+var Loading = React.createClass({
+   
+    
+    getDefaultProps: function () {
+        return {
+            text: 'Loading',
+            speed: 300
+        }
+    },
+
+    getInitialState: function () {
+        this.originalText = this.props.text;
+        return {
+            text: this.originalText
+        }
+    },
+
+    componentDidMount: function () {
+        var stopper = this.props.text + '...';
+        this.interval = setInterval(function () {
+            if (this.state.text === stopper) {
+                this.setState({
+                    text: this.originalText
+                })
+            } else {
+                this.setState({
+                    text: this.state.text + '.'
+                })
+            }
+        }.bind(this), this.props.speed)
+    },
+
+    componentWillUnmount: function () {
+        clearInterval(this.interval);
+    },
+
+    render: function() {
+        return <div style={styles.container}>
+                <p style={styles.content} > {this.state.text} </p>
+                </div>
+    }
+})
+
+
+
+ReactDOM.render(<App />, document.getElementById("leaderboard"));
